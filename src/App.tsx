@@ -9,6 +9,7 @@ import Layout from "@/components/layout/Layout";
 import HeroPage from "./pages/HeroPage";
 import BuyPage from "./pages/BuyPage";
 import SellPage from "./pages/SellPage";
+import WorkWithMePage from "./pages/WorkWithMePage";
 import AboutPage from "./pages/AboutPage";
 import SignUpPage from "./pages/SignUpPage";
 import SignInPage from "./pages/SignInPage";
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/" element={<Layout><HeroPage /></Layout>} />
               <Route path="/buy" element={<Layout><BuyPage /></Layout>} />
               <Route path="/sell" element={<Layout><SellPage /></Layout>} />
+              <Route path="/work-with-me" element={<Layout><WorkWithMePage /></Layout>} />
               <Route path="/about" element={<Layout><AboutPage /></Layout>} />
               <Route path="/dashboard" element={<Layout><GuestDashboard /></Layout>} />
               <Route path="/admin" element={<Layout><AdminDashboard /></Layout>} />

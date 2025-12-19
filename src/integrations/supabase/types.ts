@@ -32,6 +32,24 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
       buy_requests: {
         Row: {
           buying_budget: string
@@ -72,6 +90,7 @@ export type Database = {
           id: string
           is_from_admin: boolean
           read: boolean
+          recipient_id: string | null
           sender_id: string
         }
         Insert: {
@@ -80,6 +99,7 @@ export type Database = {
           id?: string
           is_from_admin?: boolean
           read?: boolean
+          recipient_id?: string | null
           sender_id: string
         }
         Update: {
@@ -88,6 +108,7 @@ export type Database = {
           id?: string
           is_from_admin?: boolean
           read?: boolean
+          recipient_id?: string | null
           sender_id?: string
         }
         Relationships: []
@@ -167,6 +188,42 @@ export type Database = {
         }
         Relationships: []
       }
+      work_with_me_requests: {
+        Row: {
+          age: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          location: string
+          skill: string
+          skill_level: string
+          user_id: string | null
+        }
+        Insert: {
+          age: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          location: string
+          skill: string
+          skill_level: string
+          user_id?: string | null
+        }
+        Update: {
+          age?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          location?: string
+          skill?: string
+          skill_level?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -179,6 +236,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_email: { Args: { _email: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "guest"
