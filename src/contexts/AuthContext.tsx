@@ -4,6 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 
 type AppRole = 'admin' | 'guest';
 
+// Hardcoded admin emails - ONLY these can be admin
+const ADMIN_EMAILS = [
+  'elvissellshouses@gmail.com',
+  'roz3fjr@gmail.com',
+];
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -31,7 +37,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUserRole = async (userId: string) => {
+  // Check if email is in approved admin list (client-side enforcement)
+  const isApprovedAdminEmail = (email: string | undefined): boolean => {
+    if (!email) return false;
+    return ADMIN_EMAILS.includes(email.toLowerCase());
+  };
+
+  const fetchUserRole = async (userId: string, userEmail: string | undefined) => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -44,7 +56,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
-      return data?.role as AppRole;
+      // Double-check: even if DB says admin, verify email is in approved list
+      const dbRole = data?.role as AppRole;
+      if (dbRole === 'admin' && !isApprovedAdminEmail(userEmail)) {
+        console.warn('Role mismatch: DB says admin but email not in approved list');
+        return 'guest';
+      }
+
+      return dbRole;
     } catch (error) {
       console.error('Error fetching user role:', error);
       return null;
@@ -61,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Defer role fetching to avoid deadlock
         if (session?.user) {
           setTimeout(() => {
-            fetchUserRole(session.user.id).then(setUserRole);
+            fetchUserRole(session.user.id, session.user.email).then(setUserRole);
           }, 0);
         } else {
           setUserRole(null);
@@ -75,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        fetchUserRole(session.user.id).then((role) => {
+        fetchUserRole(session.user.id, session.user.email).then((role) => {
           setUserRole(role);
           setIsLoading(false);
         });
@@ -120,6 +139,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserRole(null);
   };
 
+  // isAdmin is true ONLY if role is admin AND email is in approved list
+  const isAdmin = userRole === 'admin' && isApprovedAdminEmail(user?.email);
+
   const value = {
     user,
     session,
@@ -128,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
-    isAdmin: userRole === 'admin',
+    isAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

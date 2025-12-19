@@ -18,6 +18,7 @@ import {
   LogOut,
   Menu,
   X,
+  Users,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -34,6 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     { to: '/', icon: Home, label: 'Home' },
     { to: '/buy', icon: ShoppingCart, label: 'Buy a Home' },
     { to: '/sell', icon: Building2, label: 'Sell Your House' },
+    { to: '/work-with-me', icon: Users, label: 'Work With Me' },
     { to: '/about', icon: Info, label: 'About Us' },
   ];
 
