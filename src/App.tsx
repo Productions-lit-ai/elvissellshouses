@@ -13,6 +13,8 @@ import WorkWithMePage from "./pages/WorkWithMePage";
 import AboutPage from "./pages/AboutPage";
 import SignUpPage from "./pages/SignUpPage";
 import SignInPage from "./pages/SignInPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import GuestDashboard from "./pages/GuestDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
@@ -30,6 +32,8 @@ const App = () => (
             <Routes>
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/signin" element={<SignInPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/" element={<Layout><HeroPage /></Layout>} />
               <Route path="/buy" element={<Layout><BuyPage /></Layout>} />
               <Route path="/sell" element={<Layout><SellPage /></Layout>} />
