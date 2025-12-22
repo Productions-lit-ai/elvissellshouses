@@ -57,6 +57,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          lead_status: string
           phone_number: string
           preferred_area: string
           user_id: string
@@ -67,6 +68,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          lead_status?: string
           phone_number: string
           preferred_area: string
           user_id: string
@@ -77,6 +79,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          lead_status?: string
           phone_number?: string
           preferred_area?: string
           user_id?: string
@@ -147,6 +150,7 @@ export type Database = {
           full_name: string
           home_address: string
           id: string
+          lead_status: string
           phone_number: string
           user_id: string
         }
@@ -156,6 +160,7 @@ export type Database = {
           full_name: string
           home_address: string
           id?: string
+          lead_status?: string
           phone_number: string
           user_id: string
         }
@@ -165,6 +170,7 @@ export type Database = {
           full_name?: string
           home_address?: string
           id?: string
+          lead_status?: string
           phone_number?: string
           user_id?: string
         }
@@ -195,7 +201,9 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          lead_status: string
           location: string
+          phone_number: string | null
           skill: string
           skill_level: string
           user_id: string | null
@@ -206,7 +214,9 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          lead_status?: string
           location: string
+          phone_number?: string | null
           skill: string
           skill_level: string
           user_id?: string | null
@@ -217,7 +227,9 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          lead_status?: string
           location?: string
+          phone_number?: string | null
           skill?: string
           skill_level?: string
           user_id?: string | null
