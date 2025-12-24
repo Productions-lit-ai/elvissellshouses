@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserPlus, ArrowRight, Home } from 'lucide-react';
 import { z } from 'zod';
+import { notifySignup } from '@/lib/notifications';
 
 const signupSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -66,6 +67,12 @@ const SignUpPage: React.FC = () => {
         }
         return;
       }
+
+      // Send signup notification email to admin
+      notifySignup({
+        fullName: validatedData.fullName,
+        email: validatedData.email,
+      });
 
       toast({
         title: 'Welcome to Elvis Sells Houses!',

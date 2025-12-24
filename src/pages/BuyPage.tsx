@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Home, ShoppingCart, ArrowRight, CheckCircle } from 'lucide-react';
 import { z } from 'zod';
+import { notifyFormSubmission } from '@/lib/notifications';
 
 const buyFormSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -67,6 +68,20 @@ const BuyPage: React.FC = () => {
       });
 
       if (error) throw error;
+
+      // Send notification email to admin
+      notifyFormSubmission({
+        fullName: validatedData.fullName,
+        email: validatedData.email,
+        formType: 'Buy Request',
+        formFields: {
+          'Full Name': validatedData.fullName,
+          'Phone Number': validatedData.phoneNumber,
+          'Email': validatedData.email,
+          'Buying Budget': validatedData.buyingBudget,
+          'Preferred Area': validatedData.preferredArea,
+        },
+      });
 
       setIsSubmitted(true);
       toast({
