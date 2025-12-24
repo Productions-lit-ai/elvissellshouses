@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Send, CheckCircle, Mail, User, Shield, FileText, Home, Briefcase } from 'lucide-react';
+import { MessageSquare, Send, User, Shield, FileText, Home, Briefcase } from 'lucide-react';
+import { notifyMessage } from '@/lib/notifications';
 
 // Admin email that guests can message
 const ADMIN_CONTACT_EMAIL = 'elvissellshouses@gmail.com';
@@ -149,6 +150,21 @@ const GuestDashboard: React.FC = () => {
         is_from_admin: false,
       });
       if (error) throw error;
+
+      // Get user profile for sender info
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('user_id', user.id)
+        .single();
+
+      // Send notification email to admin
+      notifyMessage({
+        senderName: profile?.full_name || 'Guest User',
+        senderEmail: profile?.email || user.email || 'Unknown',
+        messageContent: message.trim(),
+        conversationUrl: `${window.location.origin}/admin`,
+      });
       
       toast({ title: 'Message sent!', description: 'Elvis will respond soon.' });
       setMessage('');

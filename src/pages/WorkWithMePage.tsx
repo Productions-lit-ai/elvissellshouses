@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { Users, CheckCircle, Briefcase, TrendingUp, Home } from 'lucide-react';
+import { notifyFormSubmission } from '@/lib/notifications';
 
 const workFormSchema = z.object({
   fullName: z.string().trim().min(1, 'Full name is required').max(100),
@@ -65,6 +66,21 @@ const WorkWithMePage: React.FC = () => {
       });
 
       if (error) throw error;
+
+      // Send notification email to admin
+      notifyFormSubmission({
+        fullName: validated.fullName,
+        email: validated.email,
+        formType: 'Work With Me Application',
+        formFields: {
+          'Full Name': validated.fullName,
+          'Email': validated.email,
+          'Location': validated.location,
+          'Age': validated.age,
+          'Skill': validated.skill,
+          'Skill Level': validated.skillLevel,
+        },
+      });
 
       toast({ title: 'Application submitted!', description: 'Elvis will review your application soon.' });
       setIsSubmitted(true);

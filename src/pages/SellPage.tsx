@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Home, Building2, ArrowRight, CheckCircle } from 'lucide-react';
 import { z } from 'zod';
+import { notifyFormSubmission } from '@/lib/notifications';
 
 const sellFormSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -64,6 +65,19 @@ const SellPage: React.FC = () => {
       });
 
       if (error) throw error;
+
+      // Send notification email to admin
+      notifyFormSubmission({
+        fullName: validatedData.fullName,
+        email: validatedData.email,
+        formType: 'Sell Request',
+        formFields: {
+          'Full Name': validatedData.fullName,
+          'Phone Number': validatedData.phoneNumber,
+          'Email': validatedData.email,
+          'Home Address': validatedData.homeAddress,
+        },
+      });
 
       setIsSubmitted(true);
       toast({
