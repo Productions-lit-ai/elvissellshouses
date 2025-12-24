@@ -1,10 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
-
 const Footer: React.FC = () => {
-  return (
-    <footer className="bg-primary text-primary-foreground">
+  return <footer className="bg-primary text-primary-foreground">
       <div className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
@@ -42,7 +40,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <a href="tel:+1234567890" className="flex items-center gap-3 text-primary-foreground/70 hover:text-accent transition-colors">
                 <Phone size={18} />
-                <span>(123) 456-7890</span>
+                <span>(631) 835-2299</span>
               </a>
               <a href="mailto:elvis@elvissellshouses.com" className="flex items-center gap-3 text-primary-foreground/70 hover:text-accent transition-colors">
                 <Mail size={18} />
@@ -60,8 +58,6 @@ const Footer: React.FC = () => {
           <p>&copy; {new Date().getFullYear()} Elvis Sells Houses. All rights reserved.</p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
