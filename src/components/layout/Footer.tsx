@@ -48,7 +48,7 @@ const Footer: React.FC = () => {
               </a>
               <div className="flex items-center gap-3 text-primary-foreground/70">
                 <MapPin size={18} />
-                <span>Your City, State</span>
+                <span>Brentwood, NY</span>
               </div>
             </div>
           </div>
