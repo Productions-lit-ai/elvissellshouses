@@ -48,7 +48,7 @@ const Footer: React.FC = () => {
               </a>
               <div className="flex items-center gap-3 text-primary-foreground/70">
                 <MapPin size={18} />
-                <span>Brentwood, NY</span>
+                <span className="text-base">Brentwood, NY</span>
               </div>
               <a href="https://instagram.com/elvissellshouses" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-primary-foreground/70 hover:text-accent transition-colors">
                 <Instagram size={18} />
