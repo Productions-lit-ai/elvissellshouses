@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin } from 'lucide-react';
+import { Phone, Mail, MapPin, Instagram } from 'lucide-react';
 const Footer: React.FC = () => {
   return <footer className="bg-primary text-primary-foreground">
       <div className="container py-12">
@@ -50,6 +50,10 @@ const Footer: React.FC = () => {
                 <MapPin size={18} />
                 <span>Brentwood, NY</span>
               </div>
+              <a href="https://instagram.com/elvissellshouses" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-primary-foreground/70 hover:text-accent transition-colors">
+                <Instagram size={18} />
+                <span>@elvissellshouses</span>
+              </a>
             </div>
           </div>
         </div>
