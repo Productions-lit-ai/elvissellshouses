@@ -38,7 +38,7 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="font-semibold text-lg mb-4">Contact</h4>
             <div className="space-y-3">
-              <a href="tel:+16318352299" className="flex items-center gap-3 text-primary-foreground/70 hover:text-accent transition-colors">
+              <a href="tel:+16318352299" className="flex items-center gap-3 text-primary-foreground/70 hover:text-accent transition-colors rounded-sm">
                 <Phone size={18} />
                 <span>(631) 835-2299</span>
               </a>
