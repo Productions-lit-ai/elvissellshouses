@@ -44,7 +44,7 @@ const Footer: React.FC = () => {
               </a>
               <a href="mailto:elvissellshouses@gmail.com" className="flex items-center gap-3 text-primary-foreground/70 hover:text-accent transition-colors">
                 <Mail size={18} />
-                <span>elvissellshouses@gmail.com</span>
+                <span className="text-base">elvissellshouses@gmail.com</span>
               </a>
               <div className="flex items-center gap-3 text-primary-foreground/70">
                 <MapPin size={18} />
