@@ -52,7 +52,7 @@ const Footer: React.FC = () => {
               </div>
               <a href="https://instagram.com/elvissellshouses" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-primary-foreground/70 hover:text-accent transition-colors">
                 <Instagram size={18} />
-                <span>@elvissellshouses</span>
+                <span className="text-base">@iamelvisregis</span>
               </a>
             </div>
           </div>
