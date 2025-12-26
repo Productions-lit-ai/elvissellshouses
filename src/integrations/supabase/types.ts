@@ -86,6 +86,36 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_notes: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          lead_id: string
+          lead_type: string
+          note: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          lead_id: string
+          lead_type: string
+          note: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          lead_id?: string
+          lead_type?: string
+          note?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

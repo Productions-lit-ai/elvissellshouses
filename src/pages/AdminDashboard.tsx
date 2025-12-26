@@ -7,9 +7,10 @@ import CRMCharts from '@/components/crm/CRMCharts';
 import CRMLeadTable, { Lead } from '@/components/crm/CRMLeadTable';
 import CRMMessaging from '@/components/crm/CRMMessaging';
 import CRMSidebar from '@/components/crm/CRMSidebar';
-import { LayoutDashboard, Users, BarChart3, MessageSquare, Menu } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, MessageSquare, Menu, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { toast } from 'sonner';
 
 type CRMView = 'dashboard' | 'leads' | 'analytics' | 'messages';
 
@@ -27,16 +28,34 @@ const AdminDashboard: React.FC = () => {
   const [activeView, setActiveView] = useState<CRMView>('dashboard');
   const [chatUserId, setChatUserId] = useState<string | null>(null);
   const [chatUserName, setChatUserName] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!user || !isAdmin)) navigate('/signin');
   }, [user, isAdmin, isLoading, navigate]);
 
+  const fetchData = async () => {
+    setIsRefreshing(true);
+    try {
+      const [buyRes, sellRes, workRes] = await Promise.all([
+        supabase.from('buy_requests').select('*').order('created_at', { ascending: false }),
+        supabase.from('sell_requests').select('*').order('created_at', { ascending: false }),
+        supabase.from('work_with_me_requests').select('*').order('created_at', { ascending: false }),
+      ]);
+      
+      setBuyRequests(buyRes.data || []);
+      setSellRequests(sellRes.data || []);
+      setWorkRequests(workRes.data || []);
+    } catch (error) {
+      toast.error('Failed to fetch data');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     if (isAdmin) {
-      supabase.from('buy_requests').select('*').order('created_at', { ascending: false }).then(({ data }) => setBuyRequests(data || []));
-      supabase.from('sell_requests').select('*').order('created_at', { ascending: false }).then(({ data }) => setSellRequests(data || []));
-      supabase.from('work_with_me_requests').select('*').order('created_at', { ascending: false }).then(({ data }) => setWorkRequests(data || []));
+      fetchData();
     }
   }, [isAdmin]);
 
@@ -102,9 +121,9 @@ const AdminDashboard: React.FC = () => {
   const chartData = useMemo(() => {
     // Leads by type
     const leadsByType = [
-      { name: 'Buyers', value: kpiData.buyLeads, color: '#10b981' },
-      { name: 'Sellers', value: kpiData.sellLeads, color: '#3b82f6' },
-      { name: 'Work', value: kpiData.workLeads, color: '#8b5cf6' },
+      { name: 'Buying a House', value: kpiData.buyLeads, color: '#10b981' },
+      { name: 'Selling a House', value: kpiData.sellLeads, color: '#3b82f6' },
+      { name: 'Work With Me', value: kpiData.workLeads, color: '#8b5cf6' },
     ].filter(d => d.value > 0);
 
     // Leads by status
@@ -172,24 +191,35 @@ const AdminDashboard: React.FC = () => {
           <Menu className="w-5 h-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-64 p-0 bg-sidebar">
-        <div className="p-6">
-          <h2 className="text-xl font-serif font-bold text-sidebar-foreground">Admin CRM</h2>
+      <SheetContent side="left" className="w-72 p-0 bg-sidebar">
+        <div className="p-6 border-b border-sidebar-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center">
+              <span className="text-lg font-bold text-sidebar-primary-foreground">E</span>
+            </div>
+            <div>
+              <h2 className="text-lg font-serif font-bold text-sidebar-foreground">Admin CRM</h2>
+              <p className="text-xs text-sidebar-foreground/50">Elvis Sells Houses</p>
+            </div>
+          </div>
         </div>
-        <nav className="px-3">
+        <nav className="px-3 py-4">
+          <p className="px-4 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-3">
+            Main Menu
+          </p>
           {[
             { id: 'dashboard' as CRMView, label: 'Dashboard', icon: LayoutDashboard },
-            { id: 'leads' as CRMView, label: 'Leads', icon: Users },
+            { id: 'leads' as CRMView, label: 'Applications', icon: Users },
             { id: 'analytics' as CRMView, label: 'Analytics', icon: BarChart3 },
             { id: 'messages' as CRMView, label: 'Messages', icon: MessageSquare },
           ].map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveView(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors mb-1 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 mb-1 ${
                 activeView === item.id
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50'
+                  ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg'
+                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
               }`}
             >
               <item.icon className="w-5 h-5" />
@@ -201,7 +231,16 @@ const AdminDashboard: React.FC = () => {
     </Sheet>
   );
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-background">Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -209,87 +248,123 @@ const AdminDashboard: React.FC = () => {
       <CRMSidebar activeView={activeView} onViewChange={setActiveView} />
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 overflow-auto">
-        {/* Mobile Header */}
-        <div className="flex items-center gap-4 mb-6 lg:hidden">
-          <MobileNav />
-          <h1 className="font-serif text-2xl font-bold text-foreground">Admin CRM</h1>
-        </div>
-
-        {/* Dashboard View */}
-        {activeView === 'dashboard' && (
-          <div className="space-y-6 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="font-serif text-2xl font-bold text-foreground hidden lg:block">Dashboard Overview</h1>
-                <p className="text-muted-foreground mt-1">Welcome back! Here's your lead summary.</p>
+      <main className="flex-1 overflow-auto">
+        {/* Top Header Bar */}
+        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+          <div className="flex items-center justify-between px-4 md:px-6 lg:px-8 h-16">
+            <div className="flex items-center gap-4">
+              <MobileNav />
+              <div className="hidden lg:block">
+                <h1 className="font-serif text-xl font-bold text-foreground">
+                  {activeView === 'dashboard' && 'Dashboard Overview'}
+                  {activeView === 'leads' && 'Application Management'}
+                  {activeView === 'analytics' && 'Analytics & Insights'}
+                  {activeView === 'messages' && 'Private Messages'}
+                </h1>
+              </div>
+              <div className="lg:hidden">
+                <h1 className="font-serif text-lg font-bold text-foreground">Admin CRM</h1>
               </div>
             </div>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={fetchData}
+                disabled={isRefreshing}
+                className="hidden sm:flex"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={fetchData}
+                disabled={isRefreshing}
+                className="sm:hidden"
+              >
+                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+          </div>
+        </header>
 
-            <CRMKPICards data={kpiData} />
-            <CRMCharts data={chartData} />
+        <div className="p-4 md:p-6 lg:p-8">
+          {/* Dashboard View */}
+          {activeView === 'dashboard' && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-muted-foreground">Welcome back! Here's your application summary for today.</p>
+                </div>
+              </div>
 
-            {/* Recent Leads Preview */}
-            <div className="bg-card rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-foreground">Recent Leads</h3>
-                <Button variant="ghost" size="sm" onClick={() => setActiveView('leads')}>
-                  View All
-                </Button>
+              <CRMKPICards data={kpiData} />
+              <CRMCharts data={chartData} />
+
+              {/* Recent Applications Preview */}
+              <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-foreground text-lg">Recent Applications</h3>
+                    <p className="text-sm text-muted-foreground">Latest 5 submissions</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setActiveView('leads')}>
+                    View All Applications
+                  </Button>
+                </div>
+                <CRMLeadTable 
+                  leads={allLeads.slice(0, 5)} 
+                  onStatusChange={handleStatusChange}
+                  onOpenChat={handleOpenChat}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Leads View */}
+          {activeView === 'leads' && (
+            <div className="space-y-6 animate-fade-in">
+              <div>
+                <p className="text-muted-foreground">Manage and track all your applications in one place.</p>
               </div>
               <CRMLeadTable 
-                leads={allLeads.slice(0, 5)} 
+                leads={allLeads} 
                 onStatusChange={handleStatusChange}
                 onOpenChat={handleOpenChat}
               />
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Leads View */}
-        {activeView === 'leads' && (
-          <div className="space-y-6 animate-fade-in">
-            <div>
-              <h1 className="font-serif text-2xl font-bold text-foreground hidden lg:block">Lead Management</h1>
-              <p className="text-muted-foreground mt-1">Manage and track all your leads.</p>
+          {/* Analytics View */}
+          {activeView === 'analytics' && (
+            <div className="space-y-6 animate-fade-in">
+              <div>
+                <p className="text-muted-foreground">Visualize your application data and trends.</p>
+              </div>
+              <CRMKPICards data={kpiData} />
+              <CRMCharts data={chartData} />
             </div>
-            <CRMLeadTable 
-              leads={allLeads} 
-              onStatusChange={handleStatusChange}
-              onOpenChat={handleOpenChat}
-            />
-          </div>
-        )}
+          )}
 
-        {/* Analytics View */}
-        {activeView === 'analytics' && (
-          <div className="space-y-6 animate-fade-in">
-            <div>
-              <h1 className="font-serif text-2xl font-bold text-foreground hidden lg:block">Analytics</h1>
-              <p className="text-muted-foreground mt-1">Visualize your lead data and trends.</p>
+          {/* Messages View */}
+          {activeView === 'messages' && (
+            <div className="space-y-6 animate-fade-in">
+              <div>
+                <p className="text-muted-foreground">Private conversations with your applicants.</p>
+              </div>
+              <CRMMessaging 
+                selectedUserId={chatUserId}
+                selectedUserName={chatUserName}
+                onClose={() => {
+                  setChatUserId(null);
+                  setChatUserName(null);
+                }}
+              />
             </div>
-            <CRMKPICards data={kpiData} />
-            <CRMCharts data={chartData} />
-          </div>
-        )}
-
-        {/* Messages View */}
-        {activeView === 'messages' && (
-          <div className="space-y-6 animate-fade-in">
-            <div>
-              <h1 className="font-serif text-2xl font-bold text-foreground hidden lg:block">Messages</h1>
-              <p className="text-muted-foreground mt-1">Private conversations with your leads.</p>
-            </div>
-            <CRMMessaging 
-              selectedUserId={chatUserId}
-              selectedUserName={chatUserName}
-              onClose={() => {
-                setChatUserId(null);
-                setChatUserName(null);
-              }}
-            />
-          </div>
-        )}
+          )}
+        </div>
       </main>
     </div>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, UserPlus, Phone, CheckCircle, TrendingUp, DollarSign } from 'lucide-react';
+import { Users, UserPlus, Phone, CheckCircle, TrendingUp, DollarSign, Briefcase, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface KPIData {
@@ -17,70 +17,127 @@ interface CRMKPICardsProps {
 }
 
 const CRMKPICards: React.FC<CRMKPICardsProps> = ({ data }) => {
+  const inProgressLeads = data.totalLeads - data.newLeads - data.contactedLeads - data.closedLeads;
+
   const cards = [
     {
-      title: 'Total Leads',
+      title: 'Total Applications',
       value: data.totalLeads,
       icon: Users,
-      color: 'bg-primary/10 text-primary',
-      iconColor: 'text-primary',
+      gradient: 'from-primary/20 to-primary/5',
+      iconBg: 'bg-primary',
+      iconColor: 'text-primary-foreground',
+      trend: '+12%',
+      trendUp: true,
     },
     {
-      title: 'New Leads',
+      title: 'New',
       value: data.newLeads,
       icon: UserPlus,
-      color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
-      iconColor: 'text-emerald-600 dark:text-emerald-400',
+      gradient: 'from-emerald-100 to-emerald-50 dark:from-emerald-900/30 dark:to-emerald-900/10',
+      iconBg: 'bg-emerald-500',
+      iconColor: 'text-white',
     },
     {
-      title: 'Contacted',
+      title: 'In-Review',
       value: data.contactedLeads,
       icon: Phone,
-      color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-      iconColor: 'text-blue-600 dark:text-blue-400',
+      gradient: 'from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/10',
+      iconBg: 'bg-blue-500',
+      iconColor: 'text-white',
     },
     {
-      title: 'Closed',
+      title: 'In Progress',
+      value: inProgressLeads > 0 ? inProgressLeads : 0,
+      icon: Clock,
+      gradient: 'from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-900/10',
+      iconBg: 'bg-amber-500',
+      iconColor: 'text-white',
+    },
+    {
+      title: 'Completed',
       value: data.closedLeads,
       icon: CheckCircle,
-      color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
-      iconColor: 'text-purple-600 dark:text-purple-400',
+      gradient: 'from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-900/10',
+      iconBg: 'bg-purple-500',
+      iconColor: 'text-white',
     },
+  ];
+
+  const typeCards = [
     {
-      title: 'Buyers',
+      title: 'Buying a House',
       value: data.buyLeads,
       icon: DollarSign,
-      color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
-      iconColor: 'text-amber-600 dark:text-amber-400',
+      color: 'text-emerald-600 dark:text-emerald-400',
+      bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
     },
     {
-      title: 'Sellers',
+      title: 'Selling a House',
       value: data.sellLeads,
       icon: TrendingUp,
-      color: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
-      iconColor: 'text-rose-600 dark:text-rose-400',
+      color: 'text-blue-600 dark:text-blue-400',
+      bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+    },
+    {
+      title: 'Work With Me',
+      value: data.workLeads,
+      icon: Briefcase,
+      color: 'text-purple-600 dark:text-purple-400',
+      bgColor: 'bg-purple-100 dark:bg-purple-900/30',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-      {cards.map((card) => (
-        <Card key={card.title} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {card.title}
-                </p>
-                <p className="text-2xl font-bold text-foreground mt-1">{card.value}</p>
+    <div className="space-y-4">
+      {/* Main KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {cards.map((card) => (
+          <Card 
+            key={card.title} 
+            className={`border-0 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br ${card.gradient} overflow-hidden`}
+          >
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                    {card.title}
+                  </p>
+                  <p className="text-3xl font-bold text-foreground">{card.value}</p>
+                </div>
+                <div className={`p-2.5 rounded-xl ${card.iconBg} shadow-lg`}>
+                  <card.icon className={`w-5 h-5 ${card.iconColor}`} />
+                </div>
               </div>
-              <div className={`p-2 rounded-lg ${card.color}`}>
-                <card.icon className={`w-5 h-5 ${card.iconColor}`} />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Form Type Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {typeCards.map((card) => (
+          <Card 
+            key={card.title} 
+            className="border-0 shadow-sm hover:shadow-md transition-all duration-300"
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-xl ${card.bgColor}`}>
+                  <card.icon className={`w-6 h-6 ${card.color}`} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
+                  <div className="flex items-end gap-2">
+                    <p className="text-2xl font-bold text-foreground">{card.value}</p>
+                    <p className="text-xs text-muted-foreground mb-1">applications</p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
