@@ -58,6 +58,7 @@ const BuyPage: React.FC = () => {
       const validatedData = buyFormSchema.parse(formData);
       setIsSubmitting(true);
 
+      // Insert into legacy table
       const { error } = await supabase.from('buy_requests').insert({
         user_id: user.id,
         full_name: validatedData.fullName,
@@ -68,6 +69,21 @@ const BuyPage: React.FC = () => {
       });
 
       if (error) throw error;
+
+      // Also insert into unified CRM table
+      await supabase.from('applications_crm').insert({
+        user_id: user.id,
+        application_type: 'buy',
+        full_name: validatedData.fullName,
+        phone_number: validatedData.phoneNumber,
+        email_address: validatedData.email,
+        location: validatedData.preferredArea,
+        form_source: 'website',
+        additional_data: {
+          buying_budget: validatedData.buyingBudget,
+          preferred_area: validatedData.preferredArea,
+        },
+      });
 
       // Send notification email to admin
       notifyFormSubmission({
