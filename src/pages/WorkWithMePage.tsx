@@ -55,6 +55,7 @@ const WorkWithMePage: React.FC = () => {
     try {
       const validated = workFormSchema.parse(formData);
 
+      // Insert into legacy table
       const { error } = await supabase.from('work_with_me_requests').insert({
         user_id: user?.id || null,
         full_name: validated.fullName,
@@ -66,6 +67,22 @@ const WorkWithMePage: React.FC = () => {
       });
 
       if (error) throw error;
+
+      // Also insert into unified CRM table
+      await supabase.from('applications_crm').insert({
+        user_id: user?.id || null,
+        application_type: 'work',
+        full_name: validated.fullName,
+        phone_number: null,
+        email_address: validated.email,
+        location: validated.location,
+        form_source: 'website',
+        additional_data: {
+          age: validated.age,
+          skill: validated.skill,
+          skill_level: validated.skillLevel,
+        },
+      });
 
       // Send notification email to admin
       notifyFormSubmission({

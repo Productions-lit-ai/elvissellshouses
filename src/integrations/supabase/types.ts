@@ -50,6 +50,51 @@ export type Database = {
         }
         Relationships: []
       }
+      applications_crm: {
+        Row: {
+          additional_data: Json | null
+          application_type: string
+          created_at: string
+          email_address: string
+          form_source: string | null
+          full_name: string
+          id: string
+          location: string | null
+          phone_number: string | null
+          status: Database["public"]["Enums"]["application_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          additional_data?: Json | null
+          application_type: string
+          created_at?: string
+          email_address: string
+          form_source?: string | null
+          full_name: string
+          id?: string
+          location?: string | null
+          phone_number?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          additional_data?: Json | null
+          application_type?: string
+          created_at?: string
+          email_address?: string
+          form_source?: string | null
+          full_name?: string
+          id?: string
+          location?: string | null
+          phone_number?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       buy_requests: {
         Row: {
           buying_budget: string
@@ -282,6 +327,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "guest"
+      application_status:
+        | "new"
+        | "in_review"
+        | "contacted"
+        | "approved"
+        | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -410,6 +461,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "guest"],
+      application_status: [
+        "new",
+        "in_review",
+        "contacted",
+        "approved",
+        "rejected",
+      ],
     },
   },
 } as const

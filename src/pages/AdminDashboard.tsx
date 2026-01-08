@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import CRMKPICards from '@/components/crm/CRMKPICards';
 import CRMCharts from '@/components/crm/CRMCharts';
-import CRMLeadTable, { Lead } from '@/components/crm/CRMLeadTable';
+import CRMApplicationTable, { Application, ApplicationStatus } from '@/components/crm/CRMApplicationTable';
 import CRMMessaging from '@/components/crm/CRMMessaging';
 import CRMSidebar from '@/components/crm/CRMSidebar';
 import { LayoutDashboard, Users, BarChart3, MessageSquare, Menu, RefreshCw } from 'lucide-react';
@@ -14,17 +14,11 @@ import { toast } from 'sonner';
 
 type CRMView = 'dashboard' | 'leads' | 'analytics' | 'messages';
 
-interface BuyRequest { id: string; full_name: string; email: string; phone_number: string; buying_budget: string; preferred_area: string; created_at: string; user_id: string; lead_status: string; }
-interface SellRequest { id: string; full_name: string; email: string; phone_number: string; home_address: string; created_at: string; user_id: string; lead_status: string; }
-interface WorkRequest { id: string; full_name: string; email: string; location: string; age: string; skill: string; skill_level: string; created_at: string; user_id: string | null; lead_status: string; phone_number?: string; }
-
 const AdminDashboard: React.FC = () => {
   const { user, isAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
   
-  const [buyRequests, setBuyRequests] = useState<BuyRequest[]>([]);
-  const [sellRequests, setSellRequests] = useState<SellRequest[]>([]);
-  const [workRequests, setWorkRequests] = useState<WorkRequest[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [activeView, setActiveView] = useState<CRMView>('dashboard');
   const [chatUserId, setChatUserId] = useState<string | null>(null);
   const [chatUserName, setChatUserName] = useState<string | null>(null);
@@ -37,17 +31,15 @@ const AdminDashboard: React.FC = () => {
   const fetchData = async () => {
     setIsRefreshing(true);
     try {
-      const [buyRes, sellRes, workRes] = await Promise.all([
-        supabase.from('buy_requests').select('*').order('created_at', { ascending: false }),
-        supabase.from('sell_requests').select('*').order('created_at', { ascending: false }),
-        supabase.from('work_with_me_requests').select('*').order('created_at', { ascending: false }),
-      ]);
+      const { data, error } = await supabase
+        .from('applications_crm')
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      setBuyRequests(buyRes.data || []);
-      setSellRequests(sellRes.data || []);
-      setWorkRequests(workRes.data || []);
+      if (error) throw error;
+      setApplications((data || []) as Application[]);
     } catch (error) {
-      toast.error('Failed to fetch data');
+      toast.error('Failed to fetch applications');
     } finally {
       setIsRefreshing(false);
     }
@@ -59,86 +51,42 @@ const AdminDashboard: React.FC = () => {
     }
   }, [isAdmin]);
 
-  // Combine all leads
-  const allLeads: Lead[] = useMemo(() => {
-    const leads: Lead[] = [];
-
-    buyRequests.forEach(r => leads.push({
-      id: r.id,
-      type: 'buy',
-      full_name: r.full_name,
-      email: r.email,
-      phone_number: r.phone_number,
-      location: r.preferred_area,
-      details: `Budget: ${r.buying_budget}`,
-      created_at: r.created_at,
-      lead_status: r.lead_status || 'new',
-      user_id: r.user_id,
-    }));
-
-    sellRequests.forEach(r => leads.push({
-      id: r.id,
-      type: 'sell',
-      full_name: r.full_name,
-      email: r.email,
-      phone_number: r.phone_number,
-      location: r.home_address,
-      details: `Address: ${r.home_address}`,
-      created_at: r.created_at,
-      lead_status: r.lead_status || 'new',
-      user_id: r.user_id,
-    }));
-
-    workRequests.forEach(r => leads.push({
-      id: r.id,
-      type: 'work',
-      full_name: r.full_name,
-      email: r.email,
-      phone_number: r.phone_number || '',
-      location: r.location,
-      age: r.age,
-      details: `${r.skill} (${r.skill_level})`,
-      created_at: r.created_at,
-      lead_status: r.lead_status || 'new',
-      user_id: r.user_id,
-    }));
-
-    return leads.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [buyRequests, sellRequests, workRequests]);
-
   // KPI data
   const kpiData = useMemo(() => ({
-    totalLeads: allLeads.length,
-    newLeads: allLeads.filter(l => l.lead_status === 'new').length,
-    contactedLeads: allLeads.filter(l => l.lead_status === 'contacted').length,
-    closedLeads: allLeads.filter(l => l.lead_status === 'closed').length,
-    buyLeads: allLeads.filter(l => l.type === 'buy').length,
-    sellLeads: allLeads.filter(l => l.type === 'sell').length,
-    workLeads: allLeads.filter(l => l.type === 'work').length,
-  }), [allLeads]);
+    totalLeads: applications.length,
+    newLeads: applications.filter(a => a.status === 'new').length,
+    contactedLeads: applications.filter(a => a.status === 'contacted').length,
+    closedLeads: applications.filter(a => a.status === 'approved').length,
+    buyLeads: applications.filter(a => a.application_type === 'buy').length,
+    sellLeads: applications.filter(a => a.application_type === 'sell').length,
+    workLeads: applications.filter(a => a.application_type === 'work').length,
+    inReviewLeads: applications.filter(a => a.status === 'in_review').length,
+    rejectedLeads: applications.filter(a => a.status === 'rejected').length,
+  }), [applications]);
 
   // Chart data
   const chartData = useMemo(() => {
-    // Leads by type
+    // Applications by type
     const leadsByType = [
       { name: 'Buying a House', value: kpiData.buyLeads, color: '#10b981' },
       { name: 'Selling a House', value: kpiData.sellLeads, color: '#3b82f6' },
       { name: 'Work With Me', value: kpiData.workLeads, color: '#8b5cf6' },
     ].filter(d => d.value > 0);
 
-    // Leads by status
+    // Applications by status
     const leadsByStatus = [
       { name: 'New', value: kpiData.newLeads, color: '#10b981' },
+      { name: 'In Review', value: kpiData.inReviewLeads, color: '#f59e0b' },
       { name: 'Contacted', value: kpiData.contactedLeads, color: '#3b82f6' },
-      { name: 'In Progress', value: allLeads.filter(l => l.lead_status === 'in progress').length, color: '#f59e0b' },
-      { name: 'Closed', value: kpiData.closedLeads, color: '#8b5cf6' },
+      { name: 'Approved', value: kpiData.closedLeads, color: '#8b5cf6' },
+      { name: 'Rejected', value: kpiData.rejectedLeads, color: '#ef4444' },
     ].filter(d => d.value > 0);
 
-    // Leads by location
+    // Applications by location
     const locationMap = new Map<string, number>();
-    allLeads.forEach(l => {
-      if (l.location) {
-        const loc = l.location.split(',')[0].trim().substring(0, 20);
+    applications.forEach(app => {
+      if (app.location) {
+        const loc = app.location.split(',')[0].trim().substring(0, 20);
         locationMap.set(loc, (locationMap.get(loc) || 0) + 1);
       }
     });
@@ -146,7 +94,7 @@ const AdminDashboard: React.FC = () => {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
 
-    // Leads over time (last 7 days)
+    // Applications over time (last 7 days)
     const dateMap = new Map<string, number>();
     const today = new Date();
     for (let i = 6; i >= 0; i--) {
@@ -154,8 +102,8 @@ const AdminDashboard: React.FC = () => {
       d.setDate(d.getDate() - i);
       dateMap.set(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), 0);
     }
-    allLeads.forEach(l => {
-      const d = new Date(l.created_at);
+    applications.forEach(app => {
+      const d = new Date(app.created_at);
       const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       if (dateMap.has(key)) {
         dateMap.set(key, (dateMap.get(key) || 0) + 1);
@@ -164,22 +112,18 @@ const AdminDashboard: React.FC = () => {
     const leadsByDate = Array.from(dateMap.entries()).map(([date, count]) => ({ date, count }));
 
     return { leadsByType, leadsByStatus, leadsByLocation, leadsByDate };
-  }, [allLeads, kpiData]);
+  }, [applications, kpiData]);
 
-  const handleStatusChange = (id: string, type: string, status: string) => {
-    if (type === 'buy') {
-      setBuyRequests(prev => prev.map(r => r.id === id ? { ...r, lead_status: status } : r));
-    } else if (type === 'sell') {
-      setSellRequests(prev => prev.map(r => r.id === id ? { ...r, lead_status: status } : r));
-    } else {
-      setWorkRequests(prev => prev.map(r => r.id === id ? { ...r, lead_status: status } : r));
-    }
+  const handleStatusChange = (id: string, status: ApplicationStatus) => {
+    setApplications(prev => 
+      prev.map(app => app.id === id ? { ...app, status } : app)
+    );
   };
 
-  const handleOpenChat = (lead: Lead) => {
-    if (lead.user_id) {
-      setChatUserId(lead.user_id);
-      setChatUserName(lead.full_name);
+  const handleOpenChat = (app: Application) => {
+    if (app.user_id) {
+      setChatUserId(app.user_id);
+      setChatUserName(app.full_name);
       setActiveView('messages');
     }
   };
@@ -314,10 +258,11 @@ const AdminDashboard: React.FC = () => {
                     View All Applications
                   </Button>
                 </div>
-                <CRMLeadTable 
-                  leads={allLeads.slice(0, 5)} 
+                <CRMApplicationTable 
+                  applications={applications.slice(0, 5)} 
                   onStatusChange={handleStatusChange}
                   onOpenChat={handleOpenChat}
+                  onRefresh={fetchData}
                 />
               </div>
             </div>
@@ -329,10 +274,11 @@ const AdminDashboard: React.FC = () => {
               <div>
                 <p className="text-muted-foreground">Manage and track all your applications in one place.</p>
               </div>
-              <CRMLeadTable 
-                leads={allLeads} 
+              <CRMApplicationTable 
+                applications={applications} 
                 onStatusChange={handleStatusChange}
                 onOpenChat={handleOpenChat}
+                onRefresh={fetchData}
               />
             </div>
           )}
