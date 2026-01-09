@@ -12,7 +12,7 @@
 @layer base {
   :root {
     /* Background & Foreground */
-    --background: 210 20% 98%;
+    --background: 0 0% 100%;
     --foreground: 222 47% 11%;
 
     /* Card surfaces */
@@ -25,10 +25,10 @@
 
     /* Primary: Deep Navy Blue */
     --primary: 222 47% 15%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Warm Slate */
-    --secondary: 220 14% 96%;
+    /* Secondary: Lighter Slate */
+    --secondary: 220 20% 98%;
     --secondary-foreground: 222 47% 11%;
 
     /* Accent: Bold Red */
@@ -36,16 +36,16 @@
     --accent-foreground: 0 0% 100%;
 
     /* Muted */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 220 20% 97%;
+    --muted-foreground: 220 9% 40%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     /* Borders & Inputs */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    --border: 220 13% 93%;
+    --input: 220 13% 93%;
     --ring: 222 47% 15%;
 
     --radius: 0.625rem;
