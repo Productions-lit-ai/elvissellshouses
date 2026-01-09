@@ -21,12 +21,12 @@ const HeroPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Content */}
             <div className="text-center lg:text-left pt-16 md:pt-0">
-              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-primary-foreground mb-6 animate-fade-in">
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 animate-fade-in">
                 ELVIS<br />
                 <span className="text-accent">SELLS</span><br />
                 HOUSES
               </h1>
-              <p className="text-lg sm:text-xl text-primary-foreground/80 mb-8 max-w-lg mx-auto lg:mx-0 animate-fade-in stagger-1" style={{ opacity: 0 }}>
+              <p className="text-lg sm:text-xl text-white/80 mb-8 max-w-lg mx-auto lg:mx-0 animate-fade-in stagger-1" style={{ opacity: 0 }}>
                 Your trusted partner in real estate. Whether you're buying your dream home or selling your property, I'm here to guide you every step of the way.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in stagger-2" style={{ opacity: 0 }}>
