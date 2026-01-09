@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, Instagram } from 'lucide-react';
+import { Phone, Mail, MapPin, Instagram, Facebook, Twitter, Linkedin, Youtube } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -52,10 +52,54 @@ const Footer: React.FC = () => {
                 <MapPin size={18} />
                 <span className="text-base">Brentwood, NY</span>
               </div>
-              <a href="https://instagram.com/elvissellshouses" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-white/70 hover:text-accent transition-colors">
-                <Instagram size={18} />
-                <span className="text-base">@iamelvisregis</span>
-              </a>
+              {/* Social Media Icons */}
+              <div className="flex items-center gap-4 pt-2">
+                <a 
+                  href="https://instagram.com/iamelvisregis" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-white/70 hover:text-accent hover:scale-110 hover:-translate-y-1 transition-all duration-300"
+                  aria-label="Instagram"
+                >
+                  <Instagram size={22} />
+                </a>
+                <a 
+                  href="https://facebook.com/elvissellshouses" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-white/70 hover:text-accent hover:scale-110 hover:-translate-y-1 transition-all duration-300"
+                  aria-label="Facebook"
+                >
+                  <Facebook size={22} />
+                </a>
+                <a 
+                  href="https://twitter.com/elvissellshouses" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-white/70 hover:text-accent hover:scale-110 hover:-translate-y-1 transition-all duration-300"
+                  aria-label="Twitter"
+                >
+                  <Twitter size={22} />
+                </a>
+                <a 
+                  href="https://linkedin.com/in/elvissellshouses" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-white/70 hover:text-accent hover:scale-110 hover:-translate-y-1 transition-all duration-300"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin size={22} />
+                </a>
+                <a 
+                  href="https://youtube.com/@elvissellshouses" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-white/70 hover:text-accent hover:scale-110 hover:-translate-y-1 transition-all duration-300"
+                  aria-label="YouTube"
+                >
+                  <Youtube size={22} />
+                </a>
+              </div>
             </div>
           </div>
         </div>
