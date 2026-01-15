@@ -7,12 +7,13 @@ import CRMCharts from '@/components/crm/CRMCharts';
 import CRMApplicationTable, { Application, ApplicationStatus } from '@/components/crm/CRMApplicationTable';
 import CRMMessaging from '@/components/crm/CRMMessaging';
 import CRMSidebar from '@/components/crm/CRMSidebar';
-import { LayoutDashboard, Users, BarChart3, MessageSquare, Menu, RefreshCw } from 'lucide-react';
+import SocialLinksSettings from '@/components/crm/SocialLinksSettings';
+import { LayoutDashboard, Users, BarChart3, MessageSquare, Menu, RefreshCw, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from 'sonner';
 
-type CRMView = 'dashboard' | 'leads' | 'analytics' | 'messages';
+type CRMView = 'dashboard' | 'leads' | 'analytics' | 'messages' | 'settings';
 
 const AdminDashboard: React.FC = () => {
   const { user, isAdmin, isLoading } = useAuth();
@@ -156,6 +157,7 @@ const AdminDashboard: React.FC = () => {
             { id: 'leads' as CRMView, label: 'Applications', icon: Users },
             { id: 'analytics' as CRMView, label: 'Analytics', icon: BarChart3 },
             { id: 'messages' as CRMView, label: 'Messages', icon: MessageSquare },
+            { id: 'settings' as CRMView, label: 'Settings', icon: Settings },
           ].map((item) => (
             <button
               key={item.id}
@@ -200,10 +202,11 @@ const AdminDashboard: React.FC = () => {
               <MobileNav />
               <div className="hidden lg:block">
                 <h1 className="font-serif text-xl font-bold text-foreground">
-                  {activeView === 'dashboard' && 'Dashboard Overview'}
+                {activeView === 'dashboard' && 'Dashboard Overview'}
                   {activeView === 'leads' && 'Application Management'}
                   {activeView === 'analytics' && 'Analytics & Insights'}
                   {activeView === 'messages' && 'Private Messages'}
+                  {activeView === 'settings' && 'Settings'}
                 </h1>
               </div>
               <div className="lg:hidden">
@@ -308,6 +311,16 @@ const AdminDashboard: React.FC = () => {
                   setChatUserName(null);
                 }}
               />
+            </div>
+          )}
+
+          {/* Settings View */}
+          {activeView === 'settings' && (
+            <div className="space-y-6 animate-fade-in">
+              <div>
+                <p className="text-muted-foreground">Configure your website and social media settings.</p>
+              </div>
+              <SocialLinksSettings />
             </div>
           )}
         </div>
