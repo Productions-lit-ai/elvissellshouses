@@ -255,18 +255,21 @@ export type Database = {
         Row: {
           enabled: boolean
           id: string
+          label: string | null
           updated_at: string
           url: string
         }
         Insert: {
           enabled?: boolean
           id: string
+          label?: string | null
           updated_at?: string
           url?: string
         }
         Update: {
           enabled?: boolean
           id?: string
+          label?: string | null
           updated_at?: string
           url?: string
         }
