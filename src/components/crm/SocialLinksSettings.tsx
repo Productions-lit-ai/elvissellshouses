@@ -11,6 +11,7 @@ interface SocialLink {
   id: string;
   url: string;
   enabled: boolean;
+  label: string;
 }
 
 const socialIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -66,6 +67,12 @@ const SocialLinksSettings: React.FC = () => {
     ));
   };
 
+  const handleLabelChange = (id: string, label: string) => {
+    setLinks(prev => prev.map(link => 
+      link.id === id ? { ...link, label } : link
+    ));
+  };
+
   const handleEnabledChange = (id: string, enabled: boolean) => {
     setLinks(prev => prev.map(link => 
       link.id === id ? { ...link, enabled } : link
@@ -78,7 +85,7 @@ const SocialLinksSettings: React.FC = () => {
       for (const link of links) {
         const { error } = await supabase
           .from('social_links')
-          .update({ url: link.url, enabled: link.enabled, updated_at: new Date().toISOString() })
+          .update({ url: link.url, enabled: link.enabled, label: link.label, updated_at: new Date().toISOString() })
           .eq('id', link.id);
         
         if (error) throw error;
@@ -132,6 +139,12 @@ const SocialLinksSettings: React.FC = () => {
                   value={link.url}
                   onChange={(e) => handleUrlChange(link.id, e.target.value)}
                   placeholder={socialPlaceholders[link.id]}
+                  className="bg-background"
+                />
+                <Input
+                  value={link.label}
+                  onChange={(e) => handleLabelChange(link.id, e.target.value)}
+                  placeholder="Display text (e.g. @username)"
                   className="bg-background"
                 />
               </div>

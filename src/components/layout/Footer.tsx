@@ -7,6 +7,7 @@ interface SocialLink {
   id: string;
   url: string;
   enabled: boolean;
+  label: string | null;
 }
 
 const socialIcons: Record<string, LucideIcon> = {
@@ -85,9 +86,9 @@ const Footer: React.FC = () => {
                 <MapPin size={18} />
                 <span className="text-base">Brentwood, NY</span>
               </div>
-              {/* Social Media Icons */}
+              {/* Social Media Links */}
               {socialLinks.length > 0 && (
-                <div className="flex items-center gap-4 pt-2">
+                <div className="space-y-2 pt-2">
                   {socialLinks.map((link) => {
                     const Icon = socialIcons[link.id];
                     if (!Icon) return null;
@@ -97,10 +98,11 @@ const Footer: React.FC = () => {
                         href={link.url} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="text-white/70 hover:text-accent hover:scale-110 hover:-translate-y-1 transition-all duration-300"
+                        className="flex items-center gap-3 text-white/70 hover:text-accent transition-colors"
                         aria-label={link.id}
                       >
-                        <Icon size={22} />
+                        <Icon size={18} />
+                        {link.label && <span className="text-base">{link.label}</span>}
                       </a>
                     );
                   })}
