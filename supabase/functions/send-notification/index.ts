@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_EMAIL = "elvissellshouses@gmail.com";
+const ADMIN_EMAIL = "roz3fjr@gmail.com";
 
 interface NotificationRequest {
   type: "signup" | "message" | "form_submission";
