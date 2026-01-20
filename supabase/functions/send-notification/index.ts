@@ -8,7 +8,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_EMAIL = "roz3fjr@gmail.com";
+// Send to verified admin email only (verify domain at resend.com/domains for more recipients)
+const ADMIN_EMAILS = ["roz3fjr@gmail.com"];
 
 interface Application {
   id: string;
@@ -329,11 +330,11 @@ const handler = async (req: Request): Promise<Response> => {
         throw new Error(`Unknown notification type: ${type}`);
     }
 
-    console.log(`Sending email to ${ADMIN_EMAIL} with subject: ${subject}`);
+    console.log(`Sending email to ${ADMIN_EMAILS.join(', ')} with subject: ${subject}`);
 
     const emailResponse = await resend.emails.send({
       from: "Elvis Sells Houses <onboarding@resend.dev>",
-      to: [ADMIN_EMAIL],
+      to: ADMIN_EMAILS,
       subject,
       html,
     });

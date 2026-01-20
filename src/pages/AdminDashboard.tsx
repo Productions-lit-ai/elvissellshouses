@@ -154,7 +154,7 @@ const AdminDashboard: React.FC = () => {
       });
       
       if (error) throw error;
-      toast.success('Summary report sent to roz3fjr@gmail.com');
+      toast.success('Summary report sent to admin emails');
     } catch (error) {
       console.error('Failed to send report:', error);
       toast.error('Failed to send summary report');
