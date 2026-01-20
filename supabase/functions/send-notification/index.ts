@@ -10,8 +10,20 @@ const corsHeaders = {
 
 const ADMIN_EMAIL = "roz3fjr@gmail.com";
 
+interface Application {
+  id: string;
+  application_type: string;
+  full_name: string;
+  phone_number: string | null;
+  email_address: string;
+  location: string | null;
+  status: string;
+  additional_data: Record<string, unknown>;
+  created_at: string;
+}
+
 interface NotificationRequest {
-  type: "signup" | "message" | "form_submission";
+  type: "signup" | "message" | "form_submission" | "summary_report";
   data: {
     fullName?: string;
     email?: string;
@@ -22,6 +34,7 @@ interface NotificationRequest {
     conversationUrl?: string;
     formType?: string;
     formFields?: Record<string, string>;
+    applications?: Application[];
   };
 }
 
@@ -157,6 +170,131 @@ const generateFormSubmissionEmail = (data: NotificationRequest["data"]): string 
   `;
 };
 
+const generateSummaryReportEmail = (data: NotificationRequest["data"]): string => {
+  const applications = data.applications || [];
+  
+  // Calculate pivot data
+  const types = ['buy', 'sell', 'work'];
+  const statuses = ['new', 'in_review', 'contacted', 'approved', 'rejected'];
+  const statusLabels: Record<string, string> = {
+    new: 'New',
+    in_review: 'In Review',
+    contacted: 'Contacted',
+    approved: 'Approved',
+    rejected: 'Rejected',
+  };
+  const typeLabels: Record<string, string> = {
+    buy: 'Buy Requests',
+    sell: 'Sell Requests',
+    work: 'Work With Me',
+  };
+  
+  const matrix: Record<string, Record<string, number>> = {};
+  const typeTotals: Record<string, number> = {};
+  const statusTotals: Record<string, number> = {};
+  
+  types.forEach(type => {
+    matrix[type] = {};
+    typeTotals[type] = 0;
+    statuses.forEach(status => {
+      matrix[type][status] = 0;
+      if (!statusTotals[status]) statusTotals[status] = 0;
+    });
+  });
+  
+  applications.forEach(app => {
+    if (matrix[app.application_type] && matrix[app.application_type][app.status] !== undefined) {
+      matrix[app.application_type][app.status]++;
+      typeTotals[app.application_type]++;
+      statusTotals[app.status]++;
+    }
+  });
+  
+  const grandTotal = applications.length;
+  
+  // Generate pivot table HTML
+  const pivotTableHtml = `
+    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; margin-bottom: 30px;">
+      <thead>
+        <tr style="background: #f3f4f6;">
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb; font-weight: 600;">Type</th>
+          ${statuses.map(s => `<th style="padding: 12px; text-align: center; border-bottom: 2px solid #e5e7eb; font-weight: 600;">${statusLabels[s]}</th>`).join('')}
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e5e7eb; font-weight: 600; background: #e5e7eb;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${types.map(type => `
+          <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${typeLabels[type]}</td>
+            ${statuses.map(status => `<td style="padding: 12px; text-align: center; border-bottom: 1px solid #e5e7eb;">${matrix[type][status]}</td>`).join('')}
+            <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #f9fafb;">${typeTotals[type]}</td>
+          </tr>
+        `).join('')}
+        <tr style="background: #f3f4f6;">
+          <td style="padding: 12px; font-weight: 600;">Total</td>
+          ${statuses.map(status => `<td style="padding: 12px; text-align: center; font-weight: 600;">${statusTotals[status]}</td>`).join('')}
+          <td style="padding: 12px; text-align: center; font-weight: 700; background: #667eea; color: white;">${grandTotal}</td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+  
+  // Generate detailed applications list
+  const recentApps = applications.slice(0, 20);
+  const applicationsListHtml = recentApps.length > 0 ? `
+    <h3 style="color: #374151; margin-bottom: 15px;">Recent Applications (Last 20)</h3>
+    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; font-size: 13px;">
+      <thead>
+        <tr style="background: #f3f4f6;">
+          <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Name</th>
+          <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Email</th>
+          <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Phone</th>
+          <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Type</th>
+          <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Status</th>
+          <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${recentApps.map(app => `
+          <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${app.full_name}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><a href="mailto:${app.email_address}" style="color: #667eea;">${app.email_address}</a></td>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${app.phone_number || '-'}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${typeLabels[app.application_type] || app.application_type}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${statusLabels[app.status] || app.status}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${new Date(app.created_at).toLocaleDateString()}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  ` : '<p style="color: #6b7280;">No applications found.</p>';
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Application Summary Report</title>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">📊 Application Summary Report</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Generated on ${new Date().toLocaleString()}</p>
+      </div>
+      <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
+        <h3 style="color: #374151; margin-bottom: 15px;">Summary Pivot Table</h3>
+        ${pivotTableHtml}
+        ${applicationsListHtml}
+      </div>
+      <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 20px;">
+        This is an automated report from Elvis Sells Houses CRM
+      </p>
+    </body>
+    </html>
+  `;
+};
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -182,6 +320,10 @@ const handler = async (req: Request): Promise<Response> => {
       case "form_submission":
         subject = `📋 New ${data.formType} Submission from ${data.fullName || data.email}`;
         html = generateFormSubmissionEmail(data);
+        break;
+      case "summary_report":
+        subject = `📊 Application Summary Report - ${new Date().toLocaleDateString()}`;
+        html = generateSummaryReportEmail(data);
         break;
       default:
         throw new Error(`Unknown notification type: ${type}`);

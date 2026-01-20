@@ -9,7 +9,7 @@ import CRMMessaging from '@/components/crm/CRMMessaging';
 import CRMSidebar from '@/components/crm/CRMSidebar';
 import SocialLinksSettings from '@/components/crm/SocialLinksSettings';
 import CRMPivotTable from '@/components/crm/CRMPivotTable';
-import { LayoutDashboard, Users, BarChart3, MessageSquare, Menu, RefreshCw, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, MessageSquare, Menu, RefreshCw, Settings, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from 'sonner';
@@ -25,6 +25,7 @@ const AdminDashboard: React.FC = () => {
   const [chatUserId, setChatUserId] = useState<string | null>(null);
   const [chatUserName, setChatUserName] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSendingReport, setIsSendingReport] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!user || !isAdmin)) navigate('/signin');
@@ -127,6 +128,38 @@ const AdminDashboard: React.FC = () => {
       setChatUserId(app.user_id);
       setChatUserName(app.full_name);
       setActiveView('messages');
+    }
+  };
+
+  const handleSendReport = async () => {
+    setIsSendingReport(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-notification', {
+        body: {
+          type: 'summary_report',
+          data: {
+            applications: applications.map(app => ({
+              id: app.id,
+              application_type: app.application_type,
+              full_name: app.full_name,
+              phone_number: app.phone_number,
+              email_address: app.email_address,
+              location: app.location,
+              status: app.status,
+              additional_data: app.additional_data,
+              created_at: app.created_at,
+            })),
+          },
+        },
+      });
+      
+      if (error) throw error;
+      toast.success('Summary report sent to roz3fjr@gmail.com');
+    } catch (error) {
+      console.error('Failed to send report:', error);
+      toast.error('Failed to send summary report');
+    } finally {
+      setIsSendingReport(false);
     }
   };
 
@@ -233,6 +266,16 @@ const AdminDashboard: React.FC = () => {
                 className="sm:hidden"
               >
                 <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={handleSendReport}
+                disabled={isSendingReport || applications.length === 0}
+                className="hidden sm:flex"
+              >
+                <Mail className={`w-4 h-4 mr-2 ${isSendingReport ? 'animate-pulse' : ''}`} />
+                {isSendingReport ? 'Sending...' : 'Email Report'}
               </Button>
             </div>
           </div>
