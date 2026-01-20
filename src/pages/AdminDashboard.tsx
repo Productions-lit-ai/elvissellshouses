@@ -8,6 +8,7 @@ import CRMApplicationTable, { Application, ApplicationStatus } from '@/component
 import CRMMessaging from '@/components/crm/CRMMessaging';
 import CRMSidebar from '@/components/crm/CRMSidebar';
 import SocialLinksSettings from '@/components/crm/SocialLinksSettings';
+import CRMPivotTable from '@/components/crm/CRMPivotTable';
 import { LayoutDashboard, Users, BarChart3, MessageSquare, Menu, RefreshCw, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -248,6 +249,7 @@ const AdminDashboard: React.FC = () => {
               </div>
 
               <CRMKPICards data={kpiData} />
+              <CRMPivotTable applications={applications} />
               <CRMCharts data={chartData} />
 
               {/* Recent Applications Preview */}
