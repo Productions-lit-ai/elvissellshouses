@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Search, ArrowUpDown, Eye, MessageSquare, ChevronLeft, ChevronRight, 
-  CalendarIcon, StickyNote, Send, Trash2, Download, Layers, ChevronDown, ChevronRight as ChevronRightIcon
+  CalendarIcon, StickyNote, Send, Trash2, Download, Layers, ChevronDown, ChevronRight as ChevronRightIcon,
+  Columns, Settings2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -53,6 +55,27 @@ interface CRMApplicationTableProps {
 type SortField = 'full_name' | 'email_address' | 'created_at' | 'location' | 'status' | 'application_type';
 type SortOrder = 'asc' | 'desc';
 type GroupBy = 'none' | 'application_type' | 'status';
+
+// Column configuration for show/hide functionality
+type ColumnKey = 'full_name' | 'email_address' | 'phone_number' | 'location' | 'application_type' | 'created_at' | 'status' | 'actions';
+
+interface ColumnConfig {
+  key: ColumnKey;
+  label: string;
+  sortable: boolean;
+  defaultVisible: boolean;
+}
+
+const allColumns: ColumnConfig[] = [
+  { key: 'full_name', label: 'Full Name', sortable: true, defaultVisible: true },
+  { key: 'email_address', label: 'Email', sortable: true, defaultVisible: true },
+  { key: 'phone_number', label: 'Phone', sortable: false, defaultVisible: true },
+  { key: 'location', label: 'Location', sortable: true, defaultVisible: true },
+  { key: 'application_type', label: 'Type', sortable: true, defaultVisible: true },
+  { key: 'created_at', label: 'Submitted', sortable: true, defaultVisible: true },
+  { key: 'status', label: 'Status', sortable: true, defaultVisible: true },
+  { key: 'actions', label: 'Actions', sortable: false, defaultVisible: true },
+];
 
 const statusColors: Record<ApplicationStatus, string> = {
   new: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 border-emerald-200',
@@ -102,6 +125,10 @@ const CRMApplicationTable: React.FC<CRMApplicationTableProps> = ({
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
   const [groupBy, setGroupBy] = useState<GroupBy>('none');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(
+    new Set(allColumns.filter(c => c.defaultVisible).map(c => c.key))
+  );
+  const [showColumnSettings, setShowColumnSettings] = useState(false);
   const pageSize = 15;
 
   // Initialize all groups as expanded
@@ -277,67 +304,98 @@ const CRMApplicationTable: React.FC<CRMApplicationTableProps> = ({
     toast.success('Exported to CSV');
   };
 
+  const toggleColumn = (key: ColumnKey) => {
+    const newVisible = new Set(visibleColumns);
+    if (newVisible.has(key)) {
+      // Don't allow hiding all columns
+      if (newVisible.size > 1) {
+        newVisible.delete(key);
+      }
+    } else {
+      newVisible.add(key);
+    }
+    setVisibleColumns(newVisible);
+  };
+
+  const isColumnVisible = (key: ColumnKey) => visibleColumns.has(key);
+
   const renderTableRow = (app: Application) => (
     <TableRow 
       key={app.id} 
       className="hover:bg-muted/20 cursor-pointer transition-colors"
       onClick={() => setSelectedApp(app)}
     >
-      <TableCell className="font-medium text-foreground">{app.full_name}</TableCell>
-      <TableCell className="text-muted-foreground">{app.email_address}</TableCell>
-      <TableCell className="text-muted-foreground">{app.phone_number || '-'}</TableCell>
-      <TableCell className="max-w-[180px] truncate text-muted-foreground">{app.location || '-'}</TableCell>
-      <TableCell>
-        <Badge className={cn(typeColors[app.application_type], "font-medium")} variant="secondary">
-          {typeLabels[app.application_type]}
-        </Badge>
-      </TableCell>
-      <TableCell className="text-muted-foreground">
-        {new Date(app.created_at).toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric', 
-          year: 'numeric' 
-        })}
-      </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <Select
-          value={app.status}
-          onValueChange={(value) => handleStatusUpdate(app, value as ApplicationStatus)}
-        >
-          <SelectTrigger className={cn("w-[130px] h-8 text-xs border", statusColors[app.status])}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="new">New</SelectItem>
-            <SelectItem value="in_review">In Review</SelectItem>
-            <SelectItem value="contacted">Contacted</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-          </SelectContent>
-        </Select>
-      </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-            onClick={() => setSelectedApp(app)}
+      {isColumnVisible('full_name') && (
+        <TableCell className="font-medium text-foreground">{app.full_name}</TableCell>
+      )}
+      {isColumnVisible('email_address') && (
+        <TableCell className="text-muted-foreground">{app.email_address}</TableCell>
+      )}
+      {isColumnVisible('phone_number') && (
+        <TableCell className="text-muted-foreground">{app.phone_number || '-'}</TableCell>
+      )}
+      {isColumnVisible('location') && (
+        <TableCell className="max-w-[180px] truncate text-muted-foreground">{app.location || '-'}</TableCell>
+      )}
+      {isColumnVisible('application_type') && (
+        <TableCell>
+          <Badge className={cn(typeColors[app.application_type], "font-medium")} variant="secondary">
+            {typeLabels[app.application_type]}
+          </Badge>
+        </TableCell>
+      )}
+      {isColumnVisible('created_at') && (
+        <TableCell className="text-muted-foreground">
+          {new Date(app.created_at).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+          })}
+        </TableCell>
+      )}
+      {isColumnVisible('status') && (
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <Select
+            value={app.status}
+            onValueChange={(value) => handleStatusUpdate(app, value as ApplicationStatus)}
           >
-            <Eye className="w-4 h-4" />
-          </Button>
-          {app.user_id && (
+            <SelectTrigger className={cn("w-[130px] h-8 text-xs border", statusColors[app.status])}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new">New</SelectItem>
+              <SelectItem value="in_review">In Review</SelectItem>
+              <SelectItem value="contacted">Contacted</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+        </TableCell>
+      )}
+      {isColumnVisible('actions') && (
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <div className="flex gap-1">
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-              onClick={() => onOpenChat(app)}
+              onClick={() => setSelectedApp(app)}
             >
-              <MessageSquare className="w-4 h-4" />
+              <Eye className="w-4 h-4" />
             </Button>
-          )}
-        </div>
-      </TableCell>
+            {app.user_id && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                onClick={() => onOpenChat(app)}
+              >
+                <MessageSquare className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </TableCell>
+      )}
     </TableRow>
   );
 
@@ -414,7 +472,7 @@ const CRMApplicationTable: React.FC<CRMApplicationTableProps> = ({
           )}
         </div>
 
-        {/* Grouping & Export Controls */}
+        {/* Grouping, Column Settings & Export Controls */}
         <div className="flex flex-wrap gap-3 items-center mt-3 pt-3 border-t border-border/50">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-muted-foreground" />
@@ -430,6 +488,40 @@ const CRMApplicationTable: React.FC<CRMApplicationTableProps> = ({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Column Visibility Toggle */}
+          <Popover open={showColumnSettings} onOpenChange={setShowColumnSettings}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                <Columns className="w-4 h-4 mr-2" />
+                Columns
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-3" align="start">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 pb-2 mb-2 border-b border-border">
+                  <Settings2 className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Show/Hide Columns</span>
+                </div>
+                {allColumns.map((col) => (
+                  <div key={col.key} className="flex items-center gap-2 py-1">
+                    <Checkbox
+                      id={`col-${col.key}`}
+                      checked={isColumnVisible(col.key)}
+                      onCheckedChange={() => toggleColumn(col.key)}
+                      disabled={visibleColumns.size === 1 && isColumnVisible(col.key)}
+                    />
+                    <label
+                      htmlFor={`col-${col.key}`}
+                      className="text-sm cursor-pointer flex-1"
+                    >
+                      {col.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <div className="flex-1" />
 
@@ -450,38 +542,54 @@ const CRMApplicationTable: React.FC<CRMApplicationTableProps> = ({
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30 hover:bg-muted/30">
-                <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('full_name')}>
-                  <div className="flex items-center gap-2">
-                    Full Name <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  </div>
-                </TableHead>
-                <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('email_address')}>
-                  <div className="flex items-center gap-2">
-                    Email <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  </div>
-                </TableHead>
-                <TableHead className="font-semibold">Phone</TableHead>
-                <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('location')}>
-                  <div className="flex items-center gap-2">
-                    Location <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  </div>
-                </TableHead>
-                <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('application_type')}>
-                  <div className="flex items-center gap-2">
-                    Type <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  </div>
-                </TableHead>
-                <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('created_at')}>
-                  <div className="flex items-center gap-2">
-                    Submitted <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  </div>
-                </TableHead>
-                <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('status')}>
-                  <div className="flex items-center gap-2">
-                    Status <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  </div>
-                </TableHead>
-                <TableHead className="font-semibold">Actions</TableHead>
+                {isColumnVisible('full_name') && (
+                  <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('full_name')}>
+                    <div className="flex items-center gap-2">
+                      Full Name <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                  </TableHead>
+                )}
+                {isColumnVisible('email_address') && (
+                  <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('email_address')}>
+                    <div className="flex items-center gap-2">
+                      Email <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                  </TableHead>
+                )}
+                {isColumnVisible('phone_number') && (
+                  <TableHead className="font-semibold">Phone</TableHead>
+                )}
+                {isColumnVisible('location') && (
+                  <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('location')}>
+                    <div className="flex items-center gap-2">
+                      Location <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                  </TableHead>
+                )}
+                {isColumnVisible('application_type') && (
+                  <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('application_type')}>
+                    <div className="flex items-center gap-2">
+                      Type <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                  </TableHead>
+                )}
+                {isColumnVisible('created_at') && (
+                  <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('created_at')}>
+                    <div className="flex items-center gap-2">
+                      Submitted <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                  </TableHead>
+                )}
+                {isColumnVisible('status') && (
+                  <TableHead className="cursor-pointer font-semibold" onClick={() => handleSort('status')}>
+                    <div className="flex items-center gap-2">
+                      Status <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                  </TableHead>
+                )}
+                {isColumnVisible('actions') && (
+                  <TableHead className="font-semibold">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -493,7 +601,7 @@ const CRMApplicationTable: React.FC<CRMApplicationTableProps> = ({
                       className="bg-muted/50 hover:bg-muted/60 cursor-pointer"
                       onClick={() => toggleGroup(group)}
                     >
-                      <TableCell colSpan={8} className="py-3">
+                      <TableCell colSpan={visibleColumns.size} className="py-3">
                         <div className="flex items-center gap-3">
                           {expandedGroups.has(group) ? (
                             <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -521,7 +629,7 @@ const CRMApplicationTable: React.FC<CRMApplicationTableProps> = ({
               )}
               {filteredApps.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
+                  <TableCell colSpan={visibleColumns.size} className="text-center text-muted-foreground py-12">
                     <div className="flex flex-col items-center gap-2">
                       <Search className="w-8 h-8 text-muted-foreground/50" />
                       <p>No applications found matching your criteria.</p>
