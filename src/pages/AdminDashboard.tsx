@@ -51,6 +51,31 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     if (isAdmin) {
       fetchData();
+      
+      // Set up real-time subscription for auto-updates
+      const channel = supabase
+        .channel('applications_realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'applications_crm',
+          },
+          (payload) => {
+            console.log('Real-time update:', payload);
+            // Refresh the data when any change occurs
+            fetchData();
+            if (payload.eventType === 'INSERT') {
+              toast.info('New application received!');
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [isAdmin]);
 
