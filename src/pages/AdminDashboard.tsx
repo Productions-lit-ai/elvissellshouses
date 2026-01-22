@@ -9,6 +9,7 @@ import CRMMessaging from '@/components/crm/CRMMessaging';
 import CRMSidebar from '@/components/crm/CRMSidebar';
 import SocialLinksSettings from '@/components/crm/SocialLinksSettings';
 import CRMPivotTable from '@/components/crm/CRMPivotTable';
+import CRMLeadAnalysis from '@/components/crm/CRMLeadAnalysis';
 import { LayoutDashboard, Users, BarChart3, MessageSquare, Menu, RefreshCw, Settings, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -317,6 +318,7 @@ const AdminDashboard: React.FC = () => {
               </div>
 
               <CRMKPICards data={kpiData} />
+              <CRMLeadAnalysis applications={applications} />
               <CRMPivotTable applications={applications} />
               <CRMCharts data={chartData} />
 
