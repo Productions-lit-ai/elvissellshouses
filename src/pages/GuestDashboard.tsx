@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText, Home, Briefcase } from 'lucide-react';
+import { FileText, Home, Briefcase, TableIcon } from 'lucide-react';
 import CRMPivotTable from '@/components/crm/CRMPivotTable';
-import { Application } from '@/components/crm/CRMApplicationTable';
+import CRMApplicationTable, { Application, ApplicationStatus } from '@/components/crm/CRMApplicationTable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
 const GuestDashboard: React.FC = () => {
   const { user, isAdmin, isLoading } = useAuth();
@@ -38,20 +40,20 @@ const GuestDashboard: React.FC = () => {
     fetchSubmissions();
   }, [user]);
 
-  // Fetch all applications for admin pivot table
+  // Fetch all applications for admin
+  const fetchApplications = async () => {
+    const { data, error } = await supabase
+      .from('applications_crm')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (!error && data) {
+      setApplications(data as Application[]);
+    }
+  };
+
   useEffect(() => {
     if (!isAdmin) return;
-
-    const fetchApplications = async () => {
-      const { data, error } = await supabase
-        .from('applications_crm')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (!error && data) {
-        setApplications(data as Application[]);
-      }
-    };
 
     fetchApplications();
 
@@ -65,8 +67,13 @@ const GuestDashboard: React.FC = () => {
           schema: 'public',
           table: 'applications_crm',
         },
-        () => {
+        (payload) => {
           fetchApplications();
+          if (payload.eventType === 'INSERT') {
+            toast.success('New form submission received!', {
+              description: 'A new lead has been added to your dashboard.',
+            });
+          }
         }
       )
       .subscribe();
@@ -76,11 +83,22 @@ const GuestDashboard: React.FC = () => {
     };
   }, [isAdmin]);
 
+  const handleStatusChange = (id: string, status: ApplicationStatus) => {
+    setApplications(prev =>
+      prev.map(app => (app.id === id ? { ...app, status } : app))
+    );
+  };
+
+  const handleOpenChat = (app: Application) => {
+    // Navigate to admin dashboard messaging section if needed
+    navigate('/admin');
+  };
+
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-background">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-background pt-20 md:pt-8 pb-16">
-      <div className="container max-w-5xl px-4">
+      <div className="container max-w-7xl px-4">
         <div className="mb-8">
           <h1 className="font-serif text-3xl font-bold text-foreground">My Dashboard</h1>
           <p className="text-muted-foreground mt-1">Welcome back! Here's your activity summary.</p>
@@ -123,14 +141,39 @@ const GuestDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Admin-only Pivot Table */}
+        {/* Admin-only Form Submissions Table */}
         {isAdmin && (
           <div className="space-y-4">
             <div>
-              <h2 className="font-serif text-2xl font-bold text-foreground">Applications Summary</h2>
-              <p className="text-muted-foreground text-sm">Overview of all form submissions (Admin View)</p>
+              <h2 className="font-serif text-2xl font-bold text-foreground">Form Submissions</h2>
+              <p className="text-muted-foreground text-sm">All form submissions across your website (Admin View Only)</p>
             </div>
-            <CRMPivotTable applications={applications} />
+            
+            <Tabs defaultValue="table" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="table" className="flex items-center gap-2">
+                  <TableIcon className="w-4 h-4" />
+                  Detailed Table
+                </TabsTrigger>
+                <TabsTrigger value="summary" className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Summary View
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="table" className="mt-0">
+                <CRMApplicationTable
+                  applications={applications}
+                  onStatusChange={handleStatusChange}
+                  onOpenChat={handleOpenChat}
+                  onRefresh={fetchApplications}
+                />
+              </TabsContent>
+              
+              <TabsContent value="summary" className="mt-0">
+                <CRMPivotTable applications={applications} />
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </div>
