@@ -5,17 +5,15 @@ import { supabase } from '@/integrations/supabase/client';
 import CRMKPICards from '@/components/crm/CRMKPICards';
 import CRMCharts from '@/components/crm/CRMCharts';
 import CRMApplicationTable, { Application, ApplicationStatus } from '@/components/crm/CRMApplicationTable';
-import CRMMessaging from '@/components/crm/CRMMessaging';
 import CRMSidebar from '@/components/crm/CRMSidebar';
 import SocialLinksSettings from '@/components/crm/SocialLinksSettings';
 import CRMPivotTable from '@/components/crm/CRMPivotTable';
-import CRMLeadAnalysis from '@/components/crm/CRMLeadAnalysis';
-import { LayoutDashboard, Users, BarChart3, MessageSquare, Menu, RefreshCw, Settings, Mail } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Menu, RefreshCw, Settings, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from 'sonner';
 
-type CRMView = 'dashboard' | 'leads' | 'analytics' | 'messages' | 'settings';
+type CRMView = 'dashboard' | 'leads' | 'analytics' | 'settings';
 
 const AdminDashboard: React.FC = () => {
   const { user, isAdmin, isLoading } = useAuth();
@@ -23,8 +21,6 @@ const AdminDashboard: React.FC = () => {
   
   const [applications, setApplications] = useState<Application[]>([]);
   const [activeView, setActiveView] = useState<CRMView>('dashboard');
-  const [chatUserId, setChatUserId] = useState<string | null>(null);
-  const [chatUserName, setChatUserName] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSendingReport, setIsSendingReport] = useState(false);
 
@@ -149,14 +145,6 @@ const AdminDashboard: React.FC = () => {
     );
   };
 
-  const handleOpenChat = (app: Application) => {
-    if (app.user_id) {
-      setChatUserId(app.user_id);
-      setChatUserName(app.full_name);
-      setActiveView('messages');
-    }
-  };
-
   const handleSendReport = async () => {
     setIsSendingReport(true);
     try {
@@ -216,7 +204,6 @@ const AdminDashboard: React.FC = () => {
             { id: 'dashboard' as CRMView, label: 'Dashboard', icon: LayoutDashboard },
             { id: 'leads' as CRMView, label: 'Applications', icon: Users },
             { id: 'analytics' as CRMView, label: 'Analytics', icon: BarChart3 },
-            { id: 'messages' as CRMView, label: 'Messages', icon: MessageSquare },
             { id: 'settings' as CRMView, label: 'Settings', icon: Settings },
           ].map((item) => (
             <button
@@ -265,7 +252,6 @@ const AdminDashboard: React.FC = () => {
                 {activeView === 'dashboard' && 'Dashboard Overview'}
                   {activeView === 'leads' && 'Application Management'}
                   {activeView === 'analytics' && 'Analytics & Insights'}
-                  {activeView === 'messages' && 'Private Messages'}
                   {activeView === 'settings' && 'Settings'}
                 </h1>
               </div>
@@ -318,7 +304,7 @@ const AdminDashboard: React.FC = () => {
               </div>
 
               <CRMKPICards data={kpiData} />
-              <CRMLeadAnalysis applications={applications} />
+              
               <CRMPivotTable applications={applications} />
               <CRMCharts data={chartData} />
 
@@ -336,7 +322,6 @@ const AdminDashboard: React.FC = () => {
                 <CRMApplicationTable 
                   applications={applications.slice(0, 5)} 
                   onStatusChange={handleStatusChange}
-                  onOpenChat={handleOpenChat}
                   onRefresh={fetchData}
                 />
               </div>
@@ -352,7 +337,6 @@ const AdminDashboard: React.FC = () => {
               <CRMApplicationTable 
                 applications={applications} 
                 onStatusChange={handleStatusChange}
-                onOpenChat={handleOpenChat}
                 onRefresh={fetchData}
               />
             </div>
@@ -369,22 +353,6 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Messages View */}
-          {activeView === 'messages' && (
-            <div className="space-y-6 animate-fade-in">
-              <div>
-                <p className="text-muted-foreground">Private conversations with your applicants.</p>
-              </div>
-              <CRMMessaging 
-                selectedUserId={chatUserId}
-                selectedUserName={chatUserName}
-                onClose={() => {
-                  setChatUserId(null);
-                  setChatUserName(null);
-                }}
-              />
-            </div>
-          )}
 
           {/* Settings View */}
           {activeView === 'settings' && (

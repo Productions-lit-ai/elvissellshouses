@@ -48,7 +48,7 @@ interface LeadNote {
 interface CRMApplicationTableProps {
   applications: Application[];
   onStatusChange: (id: string, status: ApplicationStatus) => void;
-  onOpenChat: (app: Application) => void;
+  onOpenChat?: (app: Application) => void;
   onRefresh: () => void;
 }
 
@@ -383,7 +383,7 @@ const CRMApplicationTable: React.FC<CRMApplicationTableProps> = ({
             >
               <Eye className="w-4 h-4" />
             </Button>
-            {app.user_id && (
+            {app.user_id && onOpenChat && (
               <Button
                 variant="ghost"
                 size="icon"
