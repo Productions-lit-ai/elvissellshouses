@@ -1,10 +1,10 @@
 import React from 'react';
-import { LayoutDashboard, Users, BarChart3, MessageSquare, Home, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Home, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-type CRMView = 'dashboard' | 'leads' | 'analytics' | 'messages' | 'settings';
+type CRMView = 'dashboard' | 'leads' | 'analytics' | 'settings';
 
 interface CRMSidebarProps {
   activeView: CRMView;
@@ -19,7 +19,6 @@ const CRMSidebar: React.FC<CRMSidebarProps> = ({ activeView, onViewChange }) => 
     { id: 'dashboard' as CRMView, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'leads' as CRMView, label: 'Applications', icon: Users },
     { id: 'analytics' as CRMView, label: 'Analytics', icon: BarChart3 },
-    { id: 'messages' as CRMView, label: 'Messages', icon: MessageSquare },
     { id: 'settings' as CRMView, label: 'Settings', icon: Settings },
   ];
 
